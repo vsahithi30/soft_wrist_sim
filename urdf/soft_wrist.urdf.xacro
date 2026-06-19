@@ -1,360 +1,88 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="soft_wrist">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ur_soft_wrist">
 
-  <!-- ================================================================
-       SOFT WRIST URDF — based on real Onshape STL measurements
-       
-       Assembly (top to bottom, peg points DOWN):
-       world (fixed)
-         └── base_plate        (57x50x20mm, fixed mount)
-               └── joint1 (revolute, Z-axis)
-                     └── link1           (15x19x5mm connector)
-                           └── hlink1    (14x18x3mm H-link, fixed)
-                                 └── joint2 (revolute, X-axis)
-                                       └── link3_1      (15x20x5mm)
-                                             └── hlink2 (fixed)
-                                                   └── joint3 (revolute, Y-axis)
-                                                         └── link3_2
-                                                               └── tool_plate (50x50x58mm with peg)
-       
-       Real dimensions from STL bounding boxes:
-         base_plate:  57.2 x 50.4 x 20.0 mm
-         link1/link3: 15.0 x 19-20 x 5.0 mm
-         H-link:      13.6 x 18.0 x 3.0 mm
-         tool_plate:  50.0 x 50.0 x 58.0 mm (includes peg: ~46mm above, 12mm below)
-         full assembly height: ~106.5 mm
-  ================================================================ -->
+  <xacro:arg name="safety_limits"     default="true"/>
+  <xacro:arg name="safety_pos_margin" default="0.15"/>
+  <xacro:arg name="safety_k_position" default="20"/>
+  <xacro:arg name="tf_prefix"         default=""/>
 
-  <!-- ========== DIMENSIONS (in meters) ========== -->
-  <!-- Base plate -->
-  <xacro:property name="bp_x"   value="0.0572"/>
-  <xacro:property name="bp_y"   value="0.0504"/>
-  <xacro:property name="bp_z"   value="0.020"/>
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
 
-  <!-- Link1 / Link3 connectors -->
-  <xacro:property name="lk_x"   value="0.015"/>
-  <xacro:property name="lk_y"   value="0.020"/>
-  <xacro:property name="lk_z"   value="0.005"/>
-
-  <!-- H-link -->
-  <xacro:property name="hl_x"   value="0.014"/>
-  <xacro:property name="hl_y"   value="0.018"/>
-  <xacro:property name="hl_z"   value="0.003"/>
-
-  <!-- Tool plate (bounding box includes peg) -->
-  <xacro:property name="tp_x"   value="0.050"/>
-  <xacro:property name="tp_y"   value="0.050"/>
-  <xacro:property name="tp_z"   value="0.058"/>  <!-- 46mm above + 12mm below center -->
-  <xacro:property name="tp_peg_offset" value="-0.017"/> <!-- peg tip offset from center -->
-
-  <!-- Motor AX-18A (approximate box) -->
-  <xacro:property name="mx"     value="0.0318"/>
-  <xacro:property name="my"     value="0.038"/>
-  <xacro:property name="mz"     value="0.026"/>
-
-  <!-- ========== MATERIALS ========== -->
-  <material name="teal">
-    <color rgba="0.18 0.80 0.71 1.0"/>   <!-- your real 3D printed green color -->
-  </material>
-  <material name="black">
-    <color rgba="0.1 0.1 0.1 1.0"/>
-  </material>
-  <material name="dark_grey">
-    <color rgba="0.3 0.3 0.3 1.0"/>
-  </material>
-
-  <!-- ================================================================
-       WORLD + BASE PLATE (fixed, top of assembly)
-  ================================================================ -->
   <link name="world"/>
 
-  <link name="base_plate">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/base_plate.stl" scale="1 1 1"/>
-      </geometry>
-      <material name="teal"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${bp_x} ${bp_y} ${bp_z}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.05"/>
-      <inertia ixx="0.00001" ixy="0" ixz="0"
-               iyy="0.00001" iyz="0" izz="0.00001"/>
-    </inertial>
-  </link>
-
-  <joint name="world_to_base" type="fixed">
-    <parent link="world"/>
-    <child  link="base_plate"/>
+  <xacro:ur_robot
+    name="ur"
+    tf_prefix="$(arg tf_prefix)"
+    parent="world"
+    safety_limits="$(arg safety_limits)"
+    safety_pos_margin="$(arg safety_pos_margin)"
+    safety_k_position="$(arg safety_k_position)"
+    joint_limits_parameters_file="$(find ur_description)/config/ur5e/joint_limits.yaml"
+    kinematics_parameters_file="$(find ur_description)/config/ur5e/default_kinematics.yaml"
+    physical_parameters_file="$(find ur_description)/config/ur5e/physical_parameters.yaml"
+    visual_parameters_file="$(find ur_description)/config/ur5e/visual_parameters.yaml">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </joint>
+  </xacro:ur_robot>
 
-  <!-- ================================================================
-       MOTOR 1 (first Dynamixel AX-18A)
-  ================================================================ -->
-  <link name="motor1">
+  <!-- Initial joint positions so arm starts upright with peg facing down -->
+  <gazebo reference="shoulder_pan_joint">
+    <initial_position>0.0</initial_position>
+  </gazebo>
+  <gazebo reference="shoulder_lift_joint">
+    <initial_position>-1.5708</initial_position>
+  </gazebo>
+  <gazebo reference="elbow_joint">
+    <initial_position>1.5708</initial_position>
+  </gazebo>
+  <gazebo reference="wrist_1_joint">
+    <initial_position>-3.1416</initial_position>
+  </gazebo>
+  <gazebo reference="wrist_2_joint">
+    <initial_position>-1.5708</initial_position>
+  </gazebo>
+  <gazebo reference="wrist_3_joint">
+    <initial_position>0.0</initial_position>
+  </gazebo>
+
+  <!-- Gazebo joint state publisher plugin -->
+  <gazebo>
+    <plugin filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher"/>
+  </gazebo>
+
+  <!-- Materials -->
+  <material name="teal">
+    <color rgba="0.18 0.80 0.71 1.0"/>
+  </material>
+  <material name="orange">
+    <color rgba="1.0 0.4 0.0 1.0"/>
+  </material>
+
+  <!-- Soft wrist assembly attached to UR5e flange -->
+  <link name="soft_wrist_assembly">
     <visual>
       <geometry>
-        <box size="${mx} ${my} ${mz}"/>
-      </geometry>
-      <material name="black"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${mx} ${my} ${mz}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.0545"/>
-      <inertia ixx="0.00001" ixy="0" ixz="0"
-               iyy="0.00001" iyz="0" izz="0.00001"/>
-    </inertial>
-  </link>
-
-  <!-- JOINT 1: base_plate → motor1 (REVOLUTE around Z) -->
-  <joint name="joint1" type="revolute">
-    <parent link="base_plate"/>
-    <child  link="motor1"/>
-    <origin xyz="0 0 ${-bp_z/2 - mz/2}" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-1.5708" upper="1.5708" effort="18.0" velocity="1.0"/>
-    <dynamics damping="0.1" friction="0.1"/>
-  </joint>
-
-  <!-- ================================================================
-       LINK1 (connector between motor1 and hlink1)
-  ================================================================ -->
-  <link name="link1">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/link1.stl" scale="1 1 1"/>
+        <mesh filename="package://soft_wrist_sim/meshes/assembly.stl" scale="1 1 1"/>
       </geometry>
       <material name="teal"/>
     </visual>
     <collision>
       <geometry>
-        <box size="${lk_x} ${lk_y} ${lk_z}"/>
+        <box size="0.06 0.06 0.11"/>
       </geometry>
     </collision>
     <inertial>
-      <mass value="0.01"/>
-      <inertia ixx="0.000001" ixy="0" ixz="0"
-               iyy="0.000001" iyz="0" izz="0.000001"/>
+      <mass value="0.3"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0"
+               iyy="0.0001" iyz="0"
+               izz="0.0001"/>
     </inertial>
   </link>
 
-  <joint name="motor1_to_link1" type="fixed">
-    <parent link="motor1"/>
-    <child  link="link1"/>
-    <origin xyz="0 0 ${-mz/2 - lk_z/2}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ================================================================
-       H-LINK 1
-  ================================================================ -->
-  <link name="hlink1">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/hlink.stl" scale="1 1 1"/>
-      </geometry>
-      <material name="teal"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${hl_x} ${hl_y} ${hl_z}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.005"/>
-      <inertia ixx="0.0000001" ixy="0" ixz="0"
-               iyy="0.0000001" iyz="0" izz="0.0000001"/>
-    </inertial>
-  </link>
-
-  <joint name="link1_to_hlink1" type="fixed">
-    <parent link="link1"/>
-    <child  link="hlink1"/>
-    <origin xyz="0 0 ${-lk_z/2 - hl_z/2}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ================================================================
-       MOTOR 2
-  ================================================================ -->
-  <link name="motor2">
-    <visual>
-      <geometry>
-        <box size="${mx} ${my} ${mz}"/>
-      </geometry>
-      <material name="black"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${mx} ${my} ${mz}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.0545"/>
-      <inertia ixx="0.00001" ixy="0" ixz="0"
-               iyy="0.00001" iyz="0" izz="0.00001"/>
-    </inertial>
-  </link>
-
-  <!-- JOINT 2: hlink1 → motor2 (REVOLUTE around X) -->
-  <joint name="joint2" type="revolute">
-    <parent link="hlink1"/>
-    <child  link="motor2"/>
-    <origin xyz="0 0 ${-hl_z/2 - mz/2}" rpy="0 0 0"/>
-    <axis xyz="1 0 0"/>
-    <limit lower="-1.5708" upper="1.5708" effort="18.0" velocity="1.0"/>
-    <dynamics damping="0.1" friction="0.1"/>
-  </joint>
-
-  <!-- ================================================================
-       LINK3_1 (connector between motor2 and hlink2)
-  ================================================================ -->
-  <link name="link3_1">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/link3.stl" scale="1 1 1"/>
-      </geometry>
-      <material name="teal"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${lk_x} ${lk_y} ${lk_z}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.01"/>
-      <inertia ixx="0.000001" ixy="0" ixz="0"
-               iyy="0.000001" iyz="0" izz="0.000001"/>
-    </inertial>
-  </link>
-
-  <joint name="motor2_to_link3_1" type="fixed">
-    <parent link="motor2"/>
-    <child  link="link3_1"/>
-    <origin xyz="0 0 ${-mz/2 - lk_z/2}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ================================================================
-       H-LINK 2
-  ================================================================ -->
-  <link name="hlink2">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/hlink.stl" scale="1 1 1"/>
-      </geometry>
-      <material name="teal"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${hl_x} ${hl_y} ${hl_z}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.005"/>
-      <inertia ixx="0.0000001" ixy="0" ixz="0"
-               iyy="0.0000001" iyz="0" izz="0.0000001"/>
-    </inertial>
-  </link>
-
-  <joint name="link3_1_to_hlink2" type="fixed">
-    <parent link="link3_1"/>
-    <child  link="hlink2"/>
-    <origin xyz="0 0 ${-lk_z/2 - hl_z/2}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ================================================================
-       MOTOR 3
-  ================================================================ -->
-  <link name="motor3">
-    <visual>
-      <geometry>
-        <box size="${mx} ${my} ${mz}"/>
-      </geometry>
-      <material name="black"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${mx} ${my} ${mz}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.0545"/>
-      <inertia ixx="0.00001" ixy="0" ixz="0"
-               iyy="0.00001" iyz="0" izz="0.00001"/>
-    </inertial>
-  </link>
-
-  <!-- JOINT 3: hlink2 → motor3 (REVOLUTE around Y) -->
-  <joint name="joint3" type="revolute">
-    <parent link="hlink2"/>
-    <child  link="motor3"/>
-    <origin xyz="0 0 ${-hl_z/2 - mz/2}" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="-1.5708" upper="1.5708" effort="18.0" velocity="1.0"/>
-    <dynamics damping="0.1" friction="0.1"/>
-  </joint>
-
-  <!-- ================================================================
-       LINK3_2 (connector between motor3 and tool_plate)
-  ================================================================ -->
-  <link name="link3_2">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/link3.stl" scale="1 1 1"/>
-      </geometry>
-      <material name="teal"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${lk_x} ${lk_y} ${lk_z}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.01"/>
-      <inertia ixx="0.000001" ixy="0" ixz="0"
-               iyy="0.000001" iyz="0" izz="0.000001"/>
-    </inertial>
-  </link>
-
-  <joint name="motor3_to_link3_2" type="fixed">
-    <parent link="motor3"/>
-    <child  link="link3_2"/>
-    <origin xyz="0 0 ${-mz/2 - lk_z/2}" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ================================================================
-       TOOL PLATE + PEG (single mesh, peg points down)
-  ================================================================ -->
-  <link name="tool_plate">
-    <visual>
-      <geometry>
-        <mesh filename="package://soft_wrist_sim/meshes/tool_plate.stl" scale="1 1 1"/>
-      </geometry>
-      <material name="teal"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${tp_x} ${tp_y} ${tp_z}"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.05"/>
-      <inertia ixx="0.00001" ixy="0" ixz="0"
-               iyy="0.00001" iyz="0" izz="0.00001"/>
-    </inertial>
-  </link>
-
-  <joint name="link3_2_to_toolplate" type="fixed">
-    <parent link="link3_2"/>
-    <child  link="tool_plate"/>
-    <origin xyz="0 0 ${-lk_z/2 - tp_z/2}" rpy="0 0 0"/>
+  <joint name="flange_to_wrist" type="fixed">
+    <parent link="tool0"/>
+    <child  link="soft_wrist_assembly"/>
+    <origin xyz="-0.045 -0.023 0.02" rpy="0 0 0"/>
   </joint>
 
 </robot>

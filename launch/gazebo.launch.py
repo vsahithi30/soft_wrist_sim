@@ -41,7 +41,7 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    # Spawn robot on top of pedestal at z=0.5, upright
+    # Spawn robot
     spawn_robot = TimerAction(
         period=3.0,
         actions=[
@@ -51,40 +51,52 @@ def generate_launch_description():
                 arguments=[
                     '-name', 'ur_soft_wrist',
                     '-topic', 'robot_description',
-                    '-x', '0',
-                    '-y', '0',
-                    '-z', '0.51',
-                    '-R', '0',
-                    '-P', '0',
-                    '-Y', '0',
+                    '-x', '0', '-y', '0', '-z', '0.51',
                 ],
                 output='screen'
             )
         ]
     )
 
-    # Joint state publisher to hold arm in upright position
-    joint_state_publisher = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        parameters=[{
-            'zeros': {
-                'shoulder_pan_joint': 0.0,
-                'shoulder_lift_joint': -1.5708,
-                'elbow_joint': 1.5708,
-                'wrist_1_joint': -3.1416,
-                'wrist_2_joint': -1.5708,
-                'wrist_3_joint': 0.0,
-                'joint1': 0.0,
-                'joint2': 0.0,
-                'joint3': 0.0,
-            }
-        }]
+    # Start controllers after robot spawns
+    load_joint_state_broadcaster = TimerAction(
+        period=6.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+                     'joint_state_broadcaster'],
+                output='screen'
+            )
+        ]
+    )
+
+    load_arm_controller = TimerAction(
+        period=8.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+                     'arm_controller'],
+                output='screen'
+            )
+        ]
+    )
+
+    load_wrist_controller = TimerAction(
+        period=10.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+                     'wrist_controller'],
+                output='screen'
+            )
+        ]
     )
 
     return LaunchDescription([
         gazebo,
         robot_state_publisher,
-        joint_state_publisher,
         spawn_robot,
+        load_joint_state_broadcaster,
+        load_arm_controller,
+        load_wrist_controller,
     ])

@@ -41,7 +41,7 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    # Spawn robot
+    # Spawn robot with initial joint positions so arm is upright and peg faces down
     spawn_robot = TimerAction(
         period=3.0,
         actions=[
@@ -51,42 +51,14 @@ def generate_launch_description():
                 arguments=[
                     '-name', 'ur_soft_wrist',
                     '-topic', 'robot_description',
-                    '-x', '0', '-y', '0', '-z', '0.51',
+                    '-x', '0',
+                    '-y', '0',
+                    '-z', '0.51',
+                    '-J', 'shoulder_lift_joint -1.5708',
+                    '-J', 'elbow_joint 1.5708',
+                    '-J', 'wrist_1_joint -1.5708',
+                    '-J', 'wrist_2_joint -1.5708',
                 ],
-                output='screen'
-            )
-        ]
-    )
-
-    # Start controllers after robot spawns
-    load_joint_state_broadcaster = TimerAction(
-        period=6.0,
-        actions=[
-            ExecuteProcess(
-                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-                     'joint_state_broadcaster'],
-                output='screen'
-            )
-        ]
-    )
-
-    load_arm_controller = TimerAction(
-        period=8.0,
-        actions=[
-            ExecuteProcess(
-                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-                     'arm_controller'],
-                output='screen'
-            )
-        ]
-    )
-
-    load_wrist_controller = TimerAction(
-        period=10.0,
-        actions=[
-            ExecuteProcess(
-                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-                     'wrist_controller'],
                 output='screen'
             )
         ]
@@ -96,7 +68,4 @@ def generate_launch_description():
         gazebo,
         robot_state_publisher,
         spawn_robot,
-        load_joint_state_broadcaster,
-        load_arm_controller,
-        load_wrist_controller,
     ])

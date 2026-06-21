@@ -24,15 +24,18 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ur_robot>
 
+  <!-- Gazebo joint state publisher plugin -->
   <gazebo>
     <plugin filename="gz-sim-joint-state-publisher-system"
             name="gz::sim::systems::JointStatePublisher"/>
   </gazebo>
 
+  <!-- Materials -->
   <material name="teal">
     <color rgba="0.18 0.80 0.71 1.0"/>
   </material>
 
+  <!-- Soft wrist assembly attached to UR5e flange -->
   <link name="soft_wrist_assembly">
     <visual>
       <geometry>
@@ -59,71 +62,39 @@
     <origin xyz="-0.045 -0.023 0.02" rpy="0 0 0"/>
   </joint>
 
+
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
     <joint name="shoulder_pan_joint">
       <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
       <state_interface name="velocity"/>
     </joint>
     <joint name="shoulder_lift_joint">
       <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">-1.5708</param>
-      </state_interface>
+      <state_interface name="position"><param name="initial_value">-1.5708</param></state_interface>
       <state_interface name="velocity"/>
     </joint>
     <joint name="elbow_joint">
       <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">1.5708</param>
-      </state_interface>
+      <state_interface name="position"><param name="initial_value">1.5708</param></state_interface>
       <state_interface name="velocity"/>
     </joint>
     <joint name="wrist_1_joint">
       <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">-1.5708</param>
-      </state_interface>
+      <state_interface name="position"><param name="initial_value">-1.5708</param></state_interface>
       <state_interface name="velocity"/>
     </joint>
     <joint name="wrist_2_joint">
       <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">-1.5708</param>
-      </state_interface>
+      <state_interface name="position"><param name="initial_value">-1.5708</param></state_interface>
       <state_interface name="velocity"/>
     </joint>
     <joint name="wrist_3_joint">
       <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint1">
-      <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint2">
-      <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint3">
-      <command_interface name="position"/>
-      <state_interface name="position">
-        <param name="initial_value">0.0</param>
-      </state_interface>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
       <state_interface name="velocity"/>
     </joint>
   </ros2_control>

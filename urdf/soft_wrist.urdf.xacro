@@ -24,18 +24,15 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ur_robot>
 
-  <!-- Gazebo joint state publisher plugin -->
   <gazebo>
     <plugin filename="gz-sim-joint-state-publisher-system"
             name="gz::sim::systems::JointStatePublisher"/>
   </gazebo>
 
-  <!-- Materials -->
   <material name="teal">
     <color rgba="0.18 0.80 0.71 1.0"/>
   </material>
 
-  <!-- Soft wrist assembly attached to UR5e flange -->
   <link name="soft_wrist_assembly">
     <visual>
       <geometry>
@@ -58,10 +55,9 @@
 
   <joint name="flange_to_wrist" type="fixed">
     <parent link="tool0"/>
-    <child  link="soft_wrist_assembly"/>
+    <child link="soft_wrist_assembly"/>
     <origin xyz="-0.045 -0.023 0.02" rpy="0 0 0"/>
   </joint>
-
 
   <ros2_control name="GazeboSimSystem" type="system">
     <hardware>

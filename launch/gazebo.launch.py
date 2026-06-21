@@ -64,8 +64,48 @@ def generate_launch_description():
         ]
     )
 
+   # Load controllers after spawn
+    load_joint_state_broadcaster = TimerAction(
+        period=6.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+                     'joint_state_broadcaster'],
+                output='screen'
+            )
+        ]
+    )
+
+    load_arm_controller = TimerAction(
+        period=8.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+                     'arm_controller'],
+                output='screen'
+            )
+        ]
+    )
+
+    # Move arm to peg-down position after controllers load
+    position_arm = TimerAction(
+        period=12.0,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'topic', 'pub', '--once',
+                     '/arm_controller/joint_trajectory',
+                     'trajectory_msgs/msg/JointTrajectory',
+                     '{"joint_names": ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"], "points": [{"positions": [0.0, -1.5708, 1.5708, -1.5708, -1.5708, 0.0], "time_from_start": {"sec": 2}}]}'],
+                output='screen'
+            )
+        ]
+    )
+
     return LaunchDescription([
         gazebo,
         robot_state_publisher,
         spawn_robot,
+        load_joint_state_broadcaster,
+        load_arm_controller,
+        position_arm,
     ])

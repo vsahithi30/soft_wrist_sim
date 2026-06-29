@@ -70,5 +70,54 @@
         </visual>
       </link>
     </model>
+
+        <model name="aruco_marker">
+      <static>true</static>
+      <pose>0.55 0.0 0.362 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box><size>0.05 0.05 0.001</size></box>
+          </geometry>
+          <material>
+            <diffuse>1 1 1 1</diffuse>
+            <pbr>
+              <metal>
+                <albedo_map>model://soft_wrist_sim/meshes/aruco_marker_0.png</albedo_map>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.05 0.05 0.001</size></box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="overhead_camera">
+      <static>true</static>
+      <pose>0.55 0.0 1.2 0 1.5708 0</pose>
+      <link name="link">
+        <sensor name="overhead_cam" type="camera">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.01</near>
+              <far>5.0</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>10</update_rate>
+          <visualize>true</visualize>
+          <topic>/overhead_camera/image_raw</topic>
+        </sensor>
+      </link>
+    </model>
   </world>
 </sdf>

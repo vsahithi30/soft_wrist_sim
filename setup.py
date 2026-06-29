@@ -31,6 +31,8 @@ setup(
     license='MIT',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [],
+        'console_scripts': [
+            'aruco_detector = soft_wrist_sim.aruco_detector:main',
+        ],
     },
 )

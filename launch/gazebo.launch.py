@@ -36,7 +36,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='both',
-        parameters=[robot_description],
+        parameters=[robot_description, {"use_sim_time": True}],
     )
 
     spawn_robot = TimerAction(
@@ -62,8 +62,8 @@ def generate_launch_description():
     )
 
     position_arm = TimerAction(
-        period=12.0,
-        actions=[ExecuteProcess(cmd=['ros2', 'topic', 'pub', '--once', '/arm_controller/joint_trajectory', 'trajectory_msgs/msg/JointTrajectory', '{"joint_names": ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"], "points": [{"positions": [0.0, -1.5708, 1.5708, -1.5708, -1.5708, 0.0], "time_from_start": {"sec": 2}}]}'], output='screen')]
+        period=15.0,
+        actions=[ExecuteProcess(cmd=['ros2', 'topic', 'pub', '--times', '5', '/arm_controller/joint_trajectory', 'trajectory_msgs/msg/JointTrajectory', '{"joint_names": ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"], "points": [{"positions": [0.0, -1.5708, 1.5708, -1.5708, -1.5708, 0.0], "time_from_start": {"sec": 3}}]}'], output='screen')]
     )
 
     camera_bridge = TimerAction(
@@ -72,7 +72,10 @@ def generate_launch_description():
             Node(
                 package='ros_gz_bridge',
                 executable='parameter_bridge',
-                arguments=['/camera/image_raw@sensor_msgs/msg/Image@gz.msgs.Image'],
+                arguments=[
+    			'/camera/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
+   		 '/overhead_camera/image_raw@sensor_msgs/msg/Image@gz.msgs.Image'
+		],
                 output='screen'
             )
         ]

@@ -27,55 +27,38 @@ def generate_launch_description():
         "robot_description": ParameterValue(value=robot_description_content, value_type=str)
     }
 
+    # Start Gazebo
     gazebo = ExecuteProcess(
         cmd=['gz', 'sim', '-r', world_file],
         output='screen'
     )
 
+    # Robot state publisher
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='both',
-        parameters=[robot_description, {"use_sim_time": True}],
+        parameters=[robot_description],
     )
 
+    # Spawn robot with initial joint positions so arm is upright and peg faces down
     spawn_robot = TimerAction(
         period=3.0,
         actions=[
             Node(
                 package='ros_gz_sim',
                 executable='create',
-                arguments=['-name', 'ur_soft_wrist', '-topic', 'robot_description', '-x', '0', '-y', '0', '-z', '0.51'],
-                output='screen'
-            )
-        ]
-    )
-
-    load_joint_state_broadcaster = TimerAction(
-        period=6.0,
-        actions=[ExecuteProcess(cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'joint_state_broadcaster'], output='screen')]
-    )
-
-    load_arm_controller = TimerAction(
-        period=8.0,
-        actions=[ExecuteProcess(cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'arm_controller'], output='screen')]
-    )
-
-    position_arm = TimerAction(
-        period=15.0,
-        actions=[ExecuteProcess(cmd=['ros2', 'topic', 'pub', '--times', '5', '/arm_controller/joint_trajectory', 'trajectory_msgs/msg/JointTrajectory', '{"joint_names": ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"], "points": [{"positions": [0.0, -1.5708, 1.5708, -1.5708, -1.5708, 0.0], "time_from_start": {"sec": 3}}]}'], output='screen')]
-    )
-
-    camera_bridge = TimerAction(
-        period=5.0,
-        actions=[
-            Node(
-                package='ros_gz_bridge',
-                executable='parameter_bridge',
                 arguments=[
-    			'/camera/image_raw@sensor_msgs/msg/Image@gz.msgs.Image',
-   		 '/overhead_camera/image_raw@sensor_msgs/msg/Image@gz.msgs.Image'
-		],
+                    '-name', 'ur_soft_wrist',
+                    '-topic', 'robot_description',
+                    '-x', '0',
+                    '-y', '0',
+                    '-z', '0.51',
+                    '-J', 'shoulder_lift_joint -1.5708',
+                    '-J', 'elbow_joint 1.5708',
+                    '-J', 'wrist_1_joint -1.5708',
+                    '-J', 'wrist_2_joint -1.5708',
+                ],
                 output='screen'
             )
         ]
@@ -85,8 +68,4 @@ def generate_launch_description():
         gazebo,
         robot_state_publisher,
         spawn_robot,
-        load_joint_state_broadcaster,
-        load_arm_controller,
-        position_arm,
-        camera_bridge,
     ])

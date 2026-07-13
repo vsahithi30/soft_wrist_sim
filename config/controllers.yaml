@@ -1,11 +1,14 @@
 controller_manager:
   ros__parameters:
     update_rate: 100
+
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
-    wrist_controller:
+
+    soft_wrist_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
 arm_controller:
@@ -22,21 +25,19 @@ arm_controller:
     state_interfaces:
       - position
       - velocity
-    state_publish_rate: 100.0
-    action_monitor_rate: 20.0
+    open_loop_control: true
     allow_partial_joints_goal: false
 
-wrist_controller:
+soft_wrist_controller:
   ros__parameters:
     joints:
-      - joint1
-      - joint2
-      - joint3
+      - CB1
+      - CB2
+      - CB3
     command_interfaces:
       - position
     state_interfaces:
       - position
       - velocity
-    state_publish_rate: 100.0
-    action_monitor_rate: 20.0
-    allow_partial_joints_goal: false
+    open_loop_control: true
+    allow_partial_joints_goal: true

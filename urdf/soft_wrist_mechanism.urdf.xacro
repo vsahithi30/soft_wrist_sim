@@ -9,6 +9,17 @@
       <child link="${prefix}sw_base"/>
     </joint>
 
+    <gazebo reference="${prefix}tool0_to_soft_wrist_base">
+      <sensor name="${prefix}wrist_ft_sensor" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <force_torque>
+          <frame>child</frame>
+          <measure_direction>child_to_parent</measure_direction>
+        </force_torque>
+      </sensor>
+    </gazebo>
+
     <!-- Full mechanism as single merged mesh — no splitting ever -->
     <link name="${prefix}sw_base">
       <inertial>
@@ -25,9 +36,9 @@
           <color rgba="0.529 0.808 0.922 1"/>
         </material>
       </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry><box size="0.08 0.08 0.08"/></geometry>
+      <collision name="${prefix}sw_base_collision">
+        <origin xyz="0.022 -0.0245 -0.0595" rpy="0 0 0"/>
+        <geometry><box size="0.142 0.127 0.175"/></geometry>
       </collision>
     </link>
 
@@ -39,7 +50,7 @@
       <child link="${prefix}sw_CB1"/>
       <axis xyz="0 0 -1"/>
       <limit lower="-0.785" upper="0.785" effort="1.8" velocity="3.14"/>
-      <dynamics damping="100.0" friction="10.0"/>
+      <dynamics damping="0.5" friction="0.1"/>
     </joint>
     <link name="${prefix}sw_CB1">
       <inertial>
@@ -56,7 +67,7 @@
       <child link="${prefix}sw_CB2"/>
       <axis xyz="0 0 -1"/>
       <limit lower="-0.785" upper="0.785" effort="1.8" velocity="3.14"/>
-      <dynamics damping="100.0" friction="10.0"/>
+      <dynamics damping="0.5" friction="0.1"/>
     </joint>
     <link name="${prefix}sw_CB2">
       <inertial>
@@ -74,7 +85,7 @@
       <child link="${prefix}sw_CB3"/>
       <axis xyz="0 0 -1"/>
       <limit lower="-0.785" upper="0.785" effort="1.8" velocity="3.14"/>
-      <dynamics damping="100.0" friction="10.0"/>
+      <dynamics damping="0.5" friction="0.1"/>
     </joint>
     <link name="${prefix}sw_CB3">
       <inertial>

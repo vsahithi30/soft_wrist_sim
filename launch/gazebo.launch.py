@@ -38,7 +38,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='both',
-        parameters=[robot_description],
+        parameters=[robot_description, {'ignore_timestamp': True}],
     )
 
     # Spawn robot with initial joint positions so arm is upright and peg faces down
@@ -64,8 +64,48 @@ def generate_launch_description():
         ]
     )
 
+    # Spawn controllers after the robot has been created in Gazebo
+    joint_state_broadcaster_spawner = TimerAction(
+        period=6.0,
+        actions=[
+            Node(
+                package='controller_manager',
+                executable='spawner',
+                arguments=['joint_state_broadcaster'],
+                output='screen'
+            )
+        ]
+    )
+
+    arm_controller_spawner = TimerAction(
+        period=7.0,
+        actions=[
+            Node(
+                package='controller_manager',
+                executable='spawner',
+                arguments=['arm_controller'],
+                output='screen'
+            )
+        ]
+    )
+
+    soft_wrist_controller_spawner = TimerAction(
+        period=8.0,
+        actions=[
+            Node(
+                package='controller_manager',
+                executable='spawner',
+                arguments=['soft_wrist_controller'],
+                output='screen'
+            )
+        ]
+    )
+
     return LaunchDescription([
         gazebo,
         robot_state_publisher,
         spawn_robot,
+        joint_state_broadcaster_spawner,
+        arm_controller_spawner,
+        soft_wrist_controller_spawner,
     ])
